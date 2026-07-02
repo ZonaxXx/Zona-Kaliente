@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero to Hero [v0.4] — Zona Kaliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120d0f;
+    --bg-elevated:#1b1417;
+    --card:#1f171a;
+    --line:#33262a;
+    --text:#f3ece7;
+    --text-dim:#a8989c;
+    --coral:#ff5d6c;
+    --magenta:#c31860;
+    --ember:#ff8a3d;
+    --gold:#ffc857;
+    --chip-bg:#2a1a20;
+    --chip-text:#ff9fae;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.5;
+  }
+  a{color:inherit; text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ---------- NAV (igual a la portada) ---------- */
+  nav{
+    position:sticky;
+    top:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    background:rgba(18,13,15,.9);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Archivo Black', sans-serif;
+    font-size:15px;
+    letter-spacing:.02em;
+  }
+  .brand span{color:var(--coral);}
+  .nav-links{
+    display:flex;
+    gap:28px;
+    font-weight:600;
+    font-size:14px;
+  }
+  .nav-links a{color:var(--text-dim); transition:color .2s;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-links a.vip{
+    background:linear-gradient(135deg, var(--coral), var(--magenta));
+    color:#1a0d10;
+    padding:6px 14px;
+    border-radius:20px;
+    font-weight:700;
+  }
+
+  .breadcrumb{
+    max-width:1160px;
+    margin:20px auto 0;
+    padding:0 24px;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  .breadcrumb a{color:var(--text-dim);}
+  .breadcrumb a:hover{color:var(--coral);}
+  .breadcrumb .sep{margin:0 6px; opacity:.5;}
+  .breadcrumb .current{color:var(--text);}
+
+  /* ---------- LAYOUT ---------- */
+  main{
+    max-width:1160px;
+    margin:0 auto;
+    padding:20px 24px 80px;
+    display:grid;
+    grid-template-columns:440px 1fr;
+    gap:40px;
+  }
+
+  /* ---------- GALLERY ---------- */
+  .gallery-main{
+    position:relative;
+    height:400px;
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1px solid var(--line);
+    display:flex;
+    align-items:flex-end;
+    padding:20px;
+    background:linear-gradient(135deg, #2e1a24, #3a1420);
+    color:#fff;
+    font-family:'Archivo Black', sans-serif;
+    font-size:30px;
+    line-height:1.1;
+  }
+  .gallery-main::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(18,13,15,0) 35%, rgba(18,13,15,.85) 100%);
+    z-index:0;
+  }
+  .gallery-main span{position:relative; z-index:1;}
+
+  .thumbs{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:8px;
+    margin-top:10px;
+  }
+  .thumb-item{
+    height:64px;
+    border-radius:8px;
+    cursor:pointer;
+    border:2px solid transparent;
+    background:linear-gradient(135deg, var(--gA), var(--gB));
+    transition:border-color .2s, transform .2s;
+  }
+  .thumb-item:hover{transform:translateY(-2px);}
+  .thumb-item.active{border-color:var(--coral);}
+  .thumb-item:nth-child(1){--gA:#2e1a24; --gB:#3a1420;}
+  .thumb-item:nth-child(2){--gA:#241a35; --gB:#3a1450;}
+  .thumb-item:nth-child(3){--gA:#1a2635; --gB:#142a3a;}
+  .thumb-item:nth-child(4){--gA:#231a2e; --gB:#421a2e;}
+  .thumb-item:nth-child(5){--gA:#1a2e25; --gB:#123a2a;}
+
+  /* ---------- INFO ---------- */
+  h1{
+    font-family:'Archivo Black', sans-serif;
+    font-size:30px;
+    line-height:1.2;
+    margin-bottom:6px;
+  }
+  .chapter{
+    color:var(--text-dim);
+    font-size:14px;
+    margin-bottom:16px;
+  }
+
+  .stats{
+    display:flex;
+    gap:22px;
+    font-size:13px;
+    color:var(--text-dim);
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:16px;
+  }
+  .stats span{display:flex; align-items:center; gap:6px;}
+
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .tag{
+    background:var(--chip-bg);
+    color:var(--chip-text);
+    font-size:12px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:20px;
+  }
+
+  .description{
+    color:#ffd873;
+    font-size:14px;
+    line-height:1.7;
+    margin-bottom:22px;
+  }
+
+  .reactions{
+    display:flex;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .reactions button{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--bg-elevated);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:8px 16px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .2s;
+  }
+  .reactions button:hover{border-color:var(--coral);}
+
+  .divider{
+    border-top:1px dashed var(--line);
+    margin:22px 0;
+  }
+
+  .section-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:14px;
+  }
+
+  .downloads{
+    display:flex;
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .dl-btn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(135deg, #7a1030, #4a0d20);
+    border:1px solid #6b1128;
+    border-radius:var(--radius);
+    padding:16px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:transform .2s, box-shadow .2s;
+  }
+  .dl-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 14px 30px -16px rgba(195,24,96,.6);
+  }
+  .dl-btn .icon{font-size:20px;}
+
+  .vip-box{
+    background:linear-gradient(135deg, var(--bg-elevated), #201319);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .vip-box .section-label{color:var(--gold);}
+  .vip-box p{
+    color:var(--text-dim);
+    font-size:13px;
+    margin-bottom:16px;
+  }
+  .vip-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:linear-gradient(135deg, var(--gold), #ff8a3d);
+    color:#1a0d10;
+    font-weight:700;
+    font-size:14px;
+    padding:12px 22px;
+    border-radius:20px;
+    transition:transform .2s;
+  }
+  .vip-btn:hover{transform:translateY(-2px);}
+
+  footer{
+    text-align:center;
+    padding:36px 20px;
+    color:var(--text-dim);
+    font-size:12px;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width: 800px){
+    main{grid-template-columns:1fr;}
+    .gallery-main{height:300px; font-size:24px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">ZONA <span>KALIENTE</span></a>
+  <div class="nav-links">
+    <a href="index.html">Inicio</a>
+    <a href="#">Novedades</a>
+    <a href="#">Completos</a>
+    <a href="https://t.me/durazco" target="_blank" rel="noopener" class="vip">VIP</a>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="index.html">Inicio</a>
+  <span class="sep">/</span>
+  <span class="current">Zero to Hero</span>
+</div>
+
+<main>
+  <!-- GALERÍA -->
+  <div>
+    <div class="gallery-main" id="mainImage">
+      <span>ZERO TO HERO</span>
+    </div>
+    <div class="thumbs">
+      <div class="thumb-item active" onclick="selectThumb(this)"></div>
+      <div class="thumb-item" onclick="selectThumb(this)"></div>
+      <div class="thumb-item" onclick="selectThumb(this)"></div>
+      <div class="thumb-item" onclick="selectThumb(this)"></div>
+      <div class="thumb-item" onclick="selectThumb(this)"></div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div>
+    <h1>Zero to Hero</h1>
+    <div class="chapter">[v0.4]</div>
+
+    <div class="stats">
+      <span>👁 0 Vistas</span>
+      <span>⬇ 0 Descargas</span>
+      <span>📅 Publicado: 2 jul 2026</span>
+    </div>
+
+    <div class="tags">
+      <span class="tag">2DCG</span>
+      <span class="tag">Humor</span>
+      <span class="tag">Incesto</span>
+      <span class="tag">Milf</span>
+      <span class="tag">Novela visual</span>
+      <span class="tag">Protagonista masculino</span>
+      <span class="tag">Sexo vaginal</span>
+      <span class="tag">Tetas grandes</span>
+      <span class="tag">Voyeurismo</span>
+    </div>
+
+    <p class="description">
+      Interpretarás a Malcolm, un joven que descubre un mundo nuevo lleno de decisiones inesperadas.
+      Cada elección que tomes cambiará el rumbo de su historia, sus relaciones y su futuro.
+      Explorá un elenco de personajes cuidadosamente escritos mientras Malcolm se abre camino
+      de la nada al todo.
+    </p>
+
+    <div class="reactions">
+      <button>👍 0</button>
+      <button>👎 0</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">🕒 Descarga Gratuita (Con Acortador)</div>
+    <div class="downloads">
+      <a href="#" class="dl-btn">
+        <span class="icon">🖥️</span>
+        PC
+      </a>
+      <a href="#" class="dl-btn">
+        <span class="icon">📱</span>
+        APK
+      </a>
+    </div>
+
+    <div class="vip-box">
+      <div class="section-label">👑 Zona VIP</div>
+      <p>Descarga directa y sin esperas. Enlace del canal por Telegram.</p>
+      <a href="https://t.me/durazco" target="_blank" rel="noopener" class="vip-btn">
+        ⚡ Obtener Acceso VIP
+      </a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Zona Kaliente — Contenido +18. Todos los juegos pertenecen a sus respectivos creadores.
+</footer>
+
+<script>
+  function selectThumb(el){
+    document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
