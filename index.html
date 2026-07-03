@@ -404,23 +404,33 @@
 </footer>
 
 <script>
+  // ⚠️ REEMPLAZÁ esto con la misma URL que pusiste en game.html
+  const FIREBASE_DB_URL = "https://base-zona-kaliente-default-rtdb.firebaseio.com";
+
   async function cargarJuegos(){
     const grid = document.getElementById('gamesGrid');
     try{
-      const res = await fetch('games.json', {cache:'no-store'});
-      const juegos = await res.json();
+      const [resJuegos, resStats] = await Promise.all([
+        fetch('games.json', {cache:'no-store'}),
+        fetch(`${FIREBASE_DB_URL}/stats.json`).catch(() => null)
+      ]);
+      const juegos = await resJuegos.json();
+      const statsAll = (resStats && resStats.ok) ? (await resStats.json() || {}) : {};
 
       // Más nuevo primero (por si el JSON no viene ordenado)
       grid.innerHTML = juegos.map(j => {
         const portada = j.portada || (j.galeria && j.galeria[0]) || '';
+        const stats = statsAll[j.id] || {};
+        const vistas = stats.vistas ?? j.vistas ?? 0;
+        const likes = stats.likes ?? j.likes ?? 0;
         return `
         <article class="card">
           <a href="game.html?id=${encodeURIComponent(j.id)}">
             <div class="thumb has-cover" style="--cover:url('${portada}');">
               <span class="version-tag">${j.version}</span>
               <div class="thumb-stats">
-                <span>👁 ${j.vistas ?? 0}</span>
-                <span>👍 ${j.likes ?? 0}</span>
+                <span>👁 ${vistas}</span>
+                <span>👍 ${likes}</span>
               </div>
             </div>
           </a>

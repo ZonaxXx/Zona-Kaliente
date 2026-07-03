@@ -205,6 +205,14 @@
     transition:border-color .2s;
   }
   .reactions button:hover{border-color:var(--coral);}
+  .reactions button.voted{
+    border-color:var(--coral);
+    background:var(--chip-bg);
+  }
+  .reactions button:disabled{
+    opacity:.6;
+    cursor:default;
+  }
 
   .divider{
     border-top:1px dashed var(--line);
@@ -327,8 +335,8 @@
     <p class="description" id="gameDescripcion"></p>
 
     <div class="reactions">
-      <button>👍 <span id="likeCount">0</span></button>
-      <button>👎 <span id="dislikeCount">0</span></button>
+      <button id="likeBtn"><span>👍</span> <span id="likeCount">0</span></button>
+      <button id="dislikeBtn"><span>👎</span> <span id="dislikeCount">0</span></button>
     </div>
 
     <div class="divider"></div>
@@ -364,6 +372,10 @@
 </footer>
 
 <script>
+  // ⚠️ REEMPLAZÁ esto con la URL real de tu Firebase Realtime Database
+  // Se ve así: https://tu-proyecto-default-rtdb.firebaseio.com
+  const FIREBASE_DB_URL = "https://base-zona-kaliente-default-rtdb.firebaseio.com";
+
   function selectThumb(el, url){
     document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
@@ -395,20 +407,107 @@
 
       document.getElementById('gameTitle').textContent = juego.titulo;
       document.getElementById('gameVersion').textContent = `[${juego.version}]`;
-      document.getElementById('statVistas').textContent = `👁 ${juego.vistas} Vistas`;
-      document.getElementById('statDescargas').textContent = `⬇ ${juego.descargas} Descargas`;
       document.getElementById('statFecha').textContent = `📅 Publicado: ${juego.fecha}`;
       document.getElementById('gameTags').innerHTML = juego.tags.map(t => `<span class="tag">${t}</span>`).join('');
       document.getElementById('gameDescripcion').textContent = juego.descripcion;
-      document.getElementById('likeCount').textContent = juego.likes;
-      document.getElementById('dislikeCount').textContent = juego.dislikes;
       document.getElementById('dlPC').href = juego.descarga_pc;
       document.getElementById('dlAPK').href = juego.descarga_apk;
 
       document.getElementById('gameContent').style.display = 'grid';
+
+      await cargarStats(id, juego);
+      configurarReacciones(id);
     }catch(err){
       document.getElementById('notFoundMsg').style.display = 'block';
       console.error('Error cargando games.json:', err);
+    }
+  }
+
+  // Trae vistas/likes/dislikes reales desde Firebase (si no existen todavía, arranca en 0)
+  async function cargarStats(id, juego){
+    try{
+      const res = await fetch(`${FIREBASE_DB_URL}/stats/${id}.json`);
+      const stats = await res.json() || {};
+      const vistas = stats.vistas ?? juego.vistas ?? 0;
+      const likes = stats.likes ?? juego.likes ?? 0;
+      const dislikes = stats.dislikes ?? juego.dislikes ?? 0;
+
+      document.getElementById('statVistas').textContent = `👁 ${vistas} Vistas`;
+      document.getElementById('likeCount').textContent = likes;
+      document.getElementById('dislikeCount').textContent = dislikes;
+      document.getElementById('statDescargas').textContent = `⬇ ${stats.descargas ?? juego.descargas ?? 0} Descargas`;
+
+      // Suma 1 vista, solo una vez por sesión de navegador para no inflar con refrescos
+      const viewedKey = `vista_${id}`;
+      if(!sessionStorage.getItem(viewedKey)){
+        sessionStorage.setItem(viewedKey, '1');
+        const nuevaCuenta = vistas + 1;
+        document.getElementById('statVistas').textContent = `👁 ${nuevaCuenta} Vistas`;
+        fetch(`${FIREBASE_DB_URL}/stats/${id}.json`, {
+          method: 'PATCH',
+          body: JSON.stringify({ vistas: { ".sv": { "increment": 1 } } })
+        }).catch(err => console.error('Error sumando vista:', err));
+      }
+
+      // Marca los botones si ya votaste antes en este navegador
+      const voto = localStorage.getItem(`voto_${id}`);
+      if(voto === 'like') document.getElementById('likeBtn').classList.add('voted');
+      if(voto === 'dislike') document.getElementById('dislikeBtn').classList.add('voted');
+    }catch(err){
+      console.error('Error cargando stats de Firebase:', err);
+    }
+  }
+
+  function configurarReacciones(id){
+    document.getElementById('likeBtn').addEventListener('click', () => votar(id, 'like'));
+    document.getElementById('dislikeBtn').addEventListener('click', () => votar(id, 'dislike'));
+  }
+
+  async function votar(id, tipo){
+    const votoKey = `voto_${id}`;
+    const votoAnterior = localStorage.getItem(votoKey);
+
+    if(votoAnterior === tipo) return; // ya votaste esto mismo, no hace nada
+
+    const likeBtn = document.getElementById('likeBtn');
+    const dislikeBtn = document.getElementById('dislikeBtn');
+    const likeCountEl = document.getElementById('likeCount');
+    const dislikeCountEl = document.getElementById('dislikeCount');
+
+    const patch = {};
+
+    // Si tenía un voto distinto antes, se lo saca
+    if(votoAnterior === 'like'){
+      patch.likes = { ".sv": { "increment": -1 } };
+      likeCountEl.textContent = Math.max(0, parseInt(likeCountEl.textContent) - 1);
+      likeBtn.classList.remove('voted');
+    }
+    if(votoAnterior === 'dislike'){
+      patch.dislikes = { ".sv": { "increment": -1 } };
+      dislikeCountEl.textContent = Math.max(0, parseInt(dislikeCountEl.textContent) - 1);
+      dislikeBtn.classList.remove('voted');
+    }
+
+    // Suma el voto nuevo
+    if(tipo === 'like'){
+      patch.likes = { ".sv": { "increment": 1 } };
+      likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
+      likeBtn.classList.add('voted');
+    } else {
+      patch.dislikes = { ".sv": { "increment": 1 } };
+      dislikeCountEl.textContent = parseInt(dislikeCountEl.textContent) + 1;
+      dislikeBtn.classList.add('voted');
+    }
+
+    localStorage.setItem(votoKey, tipo);
+
+    try{
+      await fetch(`${FIREBASE_DB_URL}/stats/${id}.json`, {
+        method: 'PATCH',
+        body: JSON.stringify(patch)
+      });
+    }catch(err){
+      console.error('Error guardando voto:', err);
     }
   }
 
