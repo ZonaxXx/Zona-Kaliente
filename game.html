@@ -131,18 +131,13 @@
     border-radius:8px;
     cursor:pointer;
     border:2px solid transparent;
-    background-image:linear-gradient(135deg, var(--gA), var(--gB));
+    background-color:#2e1a24;
     background-size:cover;
     background-position:center;
     transition:border-color .2s, transform .2s;
   }
   .thumb-item:hover{transform:translateY(-2px);}
   .thumb-item.active{border-color:var(--coral);}
-  .thumb-item:nth-child(1){--gA:#2e1a24; --gB:#3a1420;}
-  .thumb-item:nth-child(2){--gA:#241a35; --gB:#3a1450;}
-  .thumb-item:nth-child(3){--gA:#1a2635; --gB:#142a3a;}
-  .thumb-item:nth-child(4){--gA:#231a2e; --gB:#421a2e;}
-  .thumb-item:nth-child(5){--gA:#1a2e25; --gB:#123a2a;}
 
   /* ---------- INFO ---------- */
   h1{
@@ -313,13 +308,7 @@
   <!-- GALERÍA -->
   <div>
     <div class="gallery-main" id="mainImage"></div>
-    <div class="thumbs" id="thumbsRow">
-      <div class="thumb-item active" onclick="selectThumb(this)"></div>
-      <div class="thumb-item" onclick="selectThumb(this)"></div>
-      <div class="thumb-item" onclick="selectThumb(this)"></div>
-      <div class="thumb-item" onclick="selectThumb(this)"></div>
-      <div class="thumb-item" onclick="selectThumb(this)"></div>
-    </div>
+    <div class="thumbs" id="thumbsRow"></div>
   </div>
 
   <!-- INFO -->
@@ -375,9 +364,10 @@
 </footer>
 
 <script>
-  function selectThumb(el){
+  function selectThumb(el, url){
     document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+    document.getElementById('mainImage').style.backgroundImage = `url('${url}')`;
   }
 
   async function cargarJuego(){
@@ -396,7 +386,13 @@
 
       document.getElementById('pageTitle').textContent = `${juego.titulo} [${juego.version}] — Zona Kaliente`;
       document.getElementById('breadcrumbTitle').textContent = juego.titulo;
-      document.getElementById('mainImage').style.backgroundImage = `url('${juego.portada}')`;
+      // Galería: si el juego trae "galeria", se usa esa lista; si no, se usa solo la portada
+      const galeria = (juego.galeria && juego.galeria.length) ? juego.galeria : [juego.portada];
+      document.getElementById('mainImage').style.backgroundImage = `url('${galeria[0]}')`;
+      document.getElementById('thumbsRow').innerHTML = galeria.map((url, i) => `
+        <div class="thumb-item ${i === 0 ? 'active' : ''}" style="background-image:url('${url}')" onclick="selectThumb(this, '${url}')"></div>
+      `).join('');
+
       document.getElementById('gameTitle').textContent = juego.titulo;
       document.getElementById('gameVersion').textContent = `[${juego.version}]`;
       document.getElementById('statVistas').textContent = `👁 ${juego.vistas} Vistas`;
