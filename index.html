@@ -288,7 +288,22 @@
     font-weight:700;
     white-space:nowrap;
     overflow:hidden;
-    text-overflow:ellipsis;
+    position:relative;
+  }
+  .card-body h3 a{
+    display:inline-block;
+    white-space:nowrap;
+    will-change:transform;
+  }
+  /* Al pasar el mouse, si el texto no entra, se desliza para poder leerlo completo */
+  .card-body h3:hover a.marquee{
+    animation:marquee-scroll var(--marquee-duration, 6s) linear infinite;
+  }
+  @keyframes marquee-scroll{
+    0%{transform:translateX(0);}
+    15%{transform:translateX(0);}
+    85%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)));}
+    100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)));}
   }
   .card-body h3 .edit{
     color:var(--text-dim);
@@ -422,7 +437,7 @@
           </div>
         </a>
         <div class="card-body">
-          <h3><a href="game.html?id=${encodeURIComponent(j.id)}">DESCARGAR ${j.titulo} [${j.version}] PARA ANDROID Y PC</a></h3>
+          <h3><a href="game.html?id=${encodeURIComponent(j.id)}" class="marquee-title">DESCARGAR ${j.titulo} [${j.version}] PARA ANDROID Y PC</a></h3>
           <p>${j.descripcion.slice(0, 130)}...</p>
           <div class="tags">
             ${j.tags.slice(0,3).map(t => `<span class="tag">${t}</span>`).join('')}
@@ -437,12 +452,28 @@
     `;
   }
 
+  // Activa el efecto de scroll en los títulos que no entran completos en el ancho de la tarjeta
+  function activarMarquee(){
+    document.querySelectorAll('.marquee-title').forEach(a => {
+      const contenedor = a.parentElement; // el <h3>
+      const distancia = a.scrollWidth - contenedor.clientWidth;
+      if(distancia > 4){
+        a.classList.add('marquee');
+        a.style.setProperty('--marquee-distance', `${distancia}px`);
+        // duración proporcional al largo, para que no vaya ni muy lento ni muy rápido
+        const duracion = Math.max(3, distancia / 40);
+        a.style.setProperty('--marquee-duration', `${duracion}s`);
+      }
+    });
+  }
+
   function mostrarInicio(){
     document.getElementById('sectionTitle').textContent = 'Últimas actualizaciones';
     document.getElementById('sectionSubtitle').textContent = 'Actualizado hoy';
     document.getElementById('navInicio').classList.add('active');
     document.getElementById('navTop').classList.remove('active');
     document.getElementById('gamesGrid').innerHTML = juegosConStats.map(renderCard).join('');
+    activarMarquee();
   }
 
   function mostrarTop(){
@@ -452,6 +483,7 @@
     document.getElementById('navInicio').classList.remove('active');
     const top5 = [...juegosConStats].sort((a, b) => b.likes - a.likes).slice(0, 5);
     document.getElementById('gamesGrid').innerHTML = top5.map(renderCard).join('');
+    activarMarquee();
   }
 
   function buscarJuegos(texto){
@@ -477,6 +509,7 @@
     grid.innerHTML = resultados.length
       ? resultados.map(renderCard).join('')
       : '<p style="color:var(--text-dim)">No se encontraron juegos con ese criterio.</p>';
+    activarMarquee();
   }
 
   async function cargarJuegos(){
