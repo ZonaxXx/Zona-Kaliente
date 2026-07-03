@@ -122,7 +122,7 @@
 
   .thumbs{
     display:grid;
-    grid-template-columns:repeat(5, 1fr);
+    grid-template-columns:repeat(auto-fit, minmax(60px, 1fr));
     gap:8px;
     margin-top:10px;
   }
@@ -386,8 +386,8 @@
 
       document.getElementById('pageTitle').textContent = `${juego.titulo} [${juego.version}] — Zona Kaliente`;
       document.getElementById('breadcrumbTitle').textContent = juego.titulo;
-      // Galería: si el juego trae "galeria", se usa esa lista; si no, se usa solo la portada
-      const galeria = (juego.galeria && juego.galeria.length) ? juego.galeria : [juego.portada];
+      // Galería: se usa la lista real de imágenes detectadas (1 a N). La primera es la portada.
+      const galeria = (juego.galeria && juego.galeria.length) ? juego.galeria : [juego.portada].filter(Boolean);
       document.getElementById('mainImage').style.backgroundImage = `url('${galeria[0]}')`;
       document.getElementById('thumbsRow').innerHTML = galeria.map((url, i) => `
         <div class="thumb-item ${i === 0 ? 'active' : ''}" style="background-image:url('${url}')" onclick="selectThumb(this, '${url}')"></div>

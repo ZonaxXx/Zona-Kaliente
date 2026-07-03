@@ -369,10 +369,12 @@
       const juegos = await res.json();
 
       // Más nuevo primero (por si el JSON no viene ordenado)
-      grid.innerHTML = juegos.map(j => `
+      grid.innerHTML = juegos.map(j => {
+        const portada = j.portada || (j.galeria && j.galeria[0]) || '';
+        return `
         <article class="card">
           <a href="game.html?id=${encodeURIComponent(j.id)}">
-            <div class="thumb has-cover" style="--cover:url('${j.portada}');">
+            <div class="thumb has-cover" style="--cover:url('${portada}');">
               <span class="version-tag">${j.version}</span>
             </div>
           </a>
@@ -388,7 +390,7 @@
             </div>
           </div>
         </article>
-      `).join('');
+      `;}).join('');
     }catch(err){
       grid.innerHTML = '<p style="color:var(--text-dim)">No se pudieron cargar los juegos.</p>';
       console.error('Error cargando games.json:', err);
