@@ -374,8 +374,8 @@
 
 <nav>
   <div class="nav-links">
-    <a href="#" class="active">Inicio</a>
-    <a href="#">Novedades</a>
+    <a href="#" class="active" id="navInicio">Inicio</a>
+    <a href="#" id="navTop">Top</a>
     <a href="#">Completos</a>
     <a href="https://t.me/durazco" target="_blank" rel="noopener" class="vip">VIP</a>
   </div>
@@ -390,8 +390,8 @@
 
 <main>
   <div class="section-title">
-    <h2>Últimas actualizaciones</h2>
-    <span>Actualizado hoy</span>
+    <h2 id="sectionTitle">Últimas actualizaciones</h2>
+    <span id="sectionSubtitle">Actualizado hoy</span>
   </div>
 
   <div class="grid" id="gamesGrid">
@@ -407,6 +407,53 @@
   // ⚠️ REEMPLAZÁ esto con la misma URL que pusiste en game.html
   const FIREBASE_DB_URL = "https://base-zona-kaliente-default-rtdb.firebaseio.com";
 
+  let juegosConStats = []; // se llena una vez cargados los datos
+
+  function renderCard(j){
+    return `
+      <article class="card">
+        <a href="game.html?id=${encodeURIComponent(j.id)}">
+          <div class="thumb has-cover" style="--cover:url('${j.portada}');">
+            <span class="version-tag">${j.version}</span>
+            <div class="thumb-stats">
+              <span>👁 ${j.vistas}</span>
+              <span>👍 ${j.likes}</span>
+            </div>
+          </div>
+        </a>
+        <div class="card-body">
+          <h3><a href="game.html?id=${encodeURIComponent(j.id)}">DESCARGAR ${j.titulo} [${j.version}] PARA ANDROID Y PC</a></h3>
+          <p>${j.descripcion.slice(0, 130)}...</p>
+          <div class="tags">
+            ${j.tags.slice(0,3).map(t => `<span class="tag">${t}</span>`).join('')}
+          </div>
+          <div class="meta">
+            <span>${j.autor}</span>
+            <span>${j.fecha}</span>
+          </div>
+          <a href="game.html?id=${encodeURIComponent(j.id)}" class="ver-juego-btn">▶ Ver Juego</a>
+        </div>
+      </article>
+    `;
+  }
+
+  function mostrarInicio(){
+    document.getElementById('sectionTitle').textContent = 'Últimas actualizaciones';
+    document.getElementById('sectionSubtitle').textContent = 'Actualizado hoy';
+    document.getElementById('navInicio').classList.add('active');
+    document.getElementById('navTop').classList.remove('active');
+    document.getElementById('gamesGrid').innerHTML = juegosConStats.map(renderCard).join('');
+  }
+
+  function mostrarTop(){
+    document.getElementById('sectionTitle').textContent = '🏆 Top juegos';
+    document.getElementById('sectionSubtitle').textContent = 'Los 5 más votados';
+    document.getElementById('navTop').classList.add('active');
+    document.getElementById('navInicio').classList.remove('active');
+    const top5 = [...juegosConStats].sort((a, b) => b.likes - a.likes).slice(0, 5);
+    document.getElementById('gamesGrid').innerHTML = top5.map(renderCard).join('');
+  }
+
   async function cargarJuegos(){
     const grid = document.getElementById('gamesGrid');
     try{
@@ -417,37 +464,21 @@
       const juegos = await resJuegos.json();
       const statsAll = (resStats && resStats.ok) ? (await resStats.json() || {}) : {};
 
-      // Más nuevo primero (por si el JSON no viene ordenado)
-      grid.innerHTML = juegos.map(j => {
-        const portada = j.portada || (j.galeria && j.galeria[0]) || '';
+      // Combina cada juego con sus stats reales de Firebase (o los del JSON si todavía no tiene)
+      juegosConStats = juegos.map(j => {
         const stats = statsAll[j.id] || {};
-        const vistas = stats.vistas ?? j.vistas ?? 0;
-        const likes = stats.likes ?? j.likes ?? 0;
-        return `
-        <article class="card">
-          <a href="game.html?id=${encodeURIComponent(j.id)}">
-            <div class="thumb has-cover" style="--cover:url('${portada}');">
-              <span class="version-tag">${j.version}</span>
-              <div class="thumb-stats">
-                <span>👁 ${vistas}</span>
-                <span>👍 ${likes}</span>
-              </div>
-            </div>
-          </a>
-          <div class="card-body">
-            <h3><a href="game.html?id=${encodeURIComponent(j.id)}">DESCARGAR ${j.titulo} [${j.version}] PARA ANDROID Y PC</a></h3>
-            <p>${j.descripcion.slice(0, 130)}...</p>
-            <div class="tags">
-              ${j.tags.slice(0,3).map(t => `<span class="tag">${t}</span>`).join('')}
-            </div>
-            <div class="meta">
-              <span>${j.autor}</span>
-              <span>${j.fecha}</span>
-            </div>
-            <a href="game.html?id=${encodeURIComponent(j.id)}" class="ver-juego-btn">▶ Ver Juego</a>
-          </div>
-        </article>
-      `;}).join('');
+        return {
+          ...j,
+          portada: j.portada || (j.galeria && j.galeria[0]) || '',
+          vistas: stats.vistas ?? j.vistas ?? 0,
+          likes: stats.likes ?? j.likes ?? 0
+        };
+      });
+
+      mostrarInicio();
+
+      document.getElementById('navInicio').addEventListener('click', (e) => { e.preventDefault(); mostrarInicio(); });
+      document.getElementById('navTop').addEventListener('click', (e) => { e.preventDefault(); mostrarTop(); });
     }catch(err){
       grid.innerHTML = '<p style="color:var(--text-dim)">No se pudieron cargar los juegos.</p>';
       console.error('Error cargando games.json:', err);

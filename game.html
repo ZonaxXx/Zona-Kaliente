@@ -236,21 +236,36 @@
   .dl-btn{
     flex:1;
     display:flex;
-    flex-direction:column;
+    flex-direction:row;
     align-items:center;
-    gap:6px;
-    background:linear-gradient(135deg, #7a1030, #4a0d20);
-    border:1px solid #6b1128;
+    justify-content:center;
+    gap:10px;
+    background:#0f1218;
     border-radius:var(--radius);
     padding:16px;
-    font-weight:700;
+    font-weight:800;
     font-size:14px;
+    letter-spacing:.03em;
     cursor:pointer;
     transition:transform .2s, box-shadow .2s;
   }
-  .dl-btn:hover{
+  .dl-btn.dl-pc{
+    border:1px solid #2a8fd8;
+    color:#4fc3f7;
+    box-shadow:0 0 14px -4px rgba(79,195,247,.5), inset 0 0 20px -12px rgba(79,195,247,.4);
+  }
+  .dl-btn.dl-pc:hover{
     transform:translateY(-3px);
-    box-shadow:0 14px 30px -16px rgba(195,24,96,.6);
+    box-shadow:0 0 22px -4px rgba(79,195,247,.8), inset 0 0 20px -10px rgba(79,195,247,.5);
+  }
+  .dl-btn.dl-apk{
+    border:1px solid #2ecc71;
+    color:#5ee88f;
+    box-shadow:0 0 14px -4px rgba(94,232,143,.5), inset 0 0 20px -12px rgba(94,232,143,.4);
+  }
+  .dl-btn.dl-apk:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 22px -4px rgba(94,232,143,.8), inset 0 0 20px -10px rgba(94,232,143,.5);
   }
   .dl-btn .icon{font-size:20px;}
 
@@ -300,8 +315,6 @@
   <a href="index.html" class="brand">ZONA <span>KALIENTE</span></a>
   <div class="nav-links">
     <a href="index.html">Inicio</a>
-    <a href="#">Novedades</a>
-    <a href="#">Completos</a>
     <a href="https://t.me/durazco" target="_blank" rel="noopener" class="vip">VIP</a>
   </div>
 </nav>
@@ -341,15 +354,15 @@
 
     <div class="divider"></div>
 
-    <div class="section-label">🕒 Descarga Gratuita (Con Acortador)</div>
+    <div class="section-label">⬇ Descargas</div>
     <div class="downloads">
-      <a href="#" id="dlPC" class="dl-btn">
+      <a href="#" id="dlPC" class="dl-btn dl-pc">
         <span class="icon">🖥️</span>
-        PC
+        PC / WINDOWS
       </a>
-      <a href="#" id="dlAPK" class="dl-btn">
+      <a href="#" id="dlAPK" class="dl-btn dl-apk">
         <span class="icon">📱</span>
-        APK
+        APK / ANDROID
       </a>
     </div>
 
