@@ -382,7 +382,7 @@
   <div class="nav-icons">
     <div class="search-box">
       <span>🔍</span>
-      <input type="text" placeholder="Buscar juego...">
+      <input type="text" id="searchInput" placeholder="Buscar juego...">
     </div>
     <button title="Modo oscuro">🌙</button>
   </div>
@@ -454,6 +454,31 @@
     document.getElementById('gamesGrid').innerHTML = top5.map(renderCard).join('');
   }
 
+  function buscarJuegos(texto){
+    const grid = document.getElementById('gamesGrid');
+    const q = texto.trim().toLowerCase();
+
+    if(!q){
+      mostrarInicio();
+      return;
+    }
+
+    document.getElementById('navInicio').classList.remove('active');
+    document.getElementById('navTop').classList.remove('active');
+
+    const resultados = juegosConStats.filter(j =>
+      j.titulo.toLowerCase().includes(q) ||
+      j.tags.some(t => t.toLowerCase().includes(q))
+    );
+
+    document.getElementById('sectionTitle').textContent = `Resultados para "${texto}"`;
+    document.getElementById('sectionSubtitle').textContent = `${resultados.length} encontrado${resultados.length === 1 ? '' : 's'}`;
+
+    grid.innerHTML = resultados.length
+      ? resultados.map(renderCard).join('')
+      : '<p style="color:var(--text-dim)">No se encontraron juegos con ese criterio.</p>';
+  }
+
   async function cargarJuegos(){
     const grid = document.getElementById('gamesGrid');
     try{
@@ -477,8 +502,9 @@
 
       mostrarInicio();
 
-      document.getElementById('navInicio').addEventListener('click', (e) => { e.preventDefault(); mostrarInicio(); });
-      document.getElementById('navTop').addEventListener('click', (e) => { e.preventDefault(); mostrarTop(); });
+      document.getElementById('navInicio').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('searchInput').value = ''; mostrarInicio(); });
+      document.getElementById('navTop').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('searchInput').value = ''; mostrarTop(); });
+      document.getElementById('searchInput').addEventListener('input', (e) => buscarJuegos(e.target.value));
     }catch(err){
       grid.innerHTML = '<p style="color:var(--text-dim)">No se pudieron cargar los juegos.</p>';
       console.error('Error cargando games.json:', err);
